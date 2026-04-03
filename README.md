@@ -9,7 +9,6 @@
 - `style.css`: 介面樣式
 - `app_server.py`: 本機靜態頁面與簽章 API
 - `private.pem`: 簽章用 EC 私鑰
-- `qr_print.py`: 舊的 serial/ESC-POS 測試工具，保留作 debug
 
 ## 啟動方式
 
