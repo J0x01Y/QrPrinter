@@ -1,0 +1,4 @@
+python-escpos>=3.1
+pyserial>=3.5
+pypdf>=6.9
+cryptography>=46.0

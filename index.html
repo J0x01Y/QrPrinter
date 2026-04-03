@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CS2 QR Token列印</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main class="app">
+      <section class="panel hero">
+        <p class="eyebrow">BLE ESC/POS</p>
+        <h1>CS2 QR Token列印</h1>
+        <p class="lead">
+          透過 Chrome 的 Web Bluetooth API 連接 BLE 印表機，依 CS2 規格產生簽章 QR 並直接列印。
+        </p>
+      </section>
+
+      <section class="panel grid">
+        <div class="card card-wide section-card">
+          <h2>連線區塊</h2>
+          <div class="section-grid two-col">
+            <div>
+              <label>
+                Service UUID
+                <input id="serviceUuid" value="000018f0-0000-1000-8000-00805f9b34fb" />
+              </label>
+              <label>
+                Characteristic UUID
+                <input id="characteristicUuid" value="00002af1-0000-1000-8000-00805f9b34fb" />
+              </label>
+              <div class="button-row">
+                <button id="connectBtn">連線</button>
+                <button id="disconnectBtn" class="secondary">斷線</button>
+              </div>
+            </div>
+            <div>
+              <p class="hint">
+                裝置挑選將只依 `Service UUID` 過濾，不再使用裝置名稱。
+              </p>
+              <p id="status" class="status">尚未連線</p>
+              <p id="serverStatus" class="status">簽章服務檢查中</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card card-wide section-card">
+          <h2>QR列印區塊</h2>
+          <div class="inline-grid triple">
+            <label>
+              生效時間
+              <input id="startTime" type="datetime-local" />
+            </label>
+            <label>
+              失效時間
+              <input id="endTime" type="datetime-local" />
+            </label>
+            <label>
+              QR 標題
+              <input id="officialLabel" value="CS2 QR PASS" />
+            </label>
+          </div>
+          <div class="qr-controls-layout">
+            <div class="selection-panel">
+              <div class="button-row left-actions">
+                <button id="selectAllButtonsBtn" class="secondary">全選 B1-B7</button>
+                <button id="clearButtonsBtn" class="secondary">清除</button>
+              </div>
+              <div id="buttonTokens" class="token-grid"></div>
+              <div class="button-row compact-row token-shortcuts">
+                <button id="selectOddButtonsBtn" class="secondary">全選 B1/B3/B5/B7</button>
+                <button id="selectEvenButtonsBtn" class="secondary">全選 B2/B4/B6</button>
+              </div>
+            </div>
+            <div class="expiry-panel">
+              <p class="hint">有效天數快速設定</p>
+              <div class="button-row compact-row duration-shortcuts">
+                <button id="duration1Btn" class="secondary">1 天</button>
+                <button id="duration3Btn" class="secondary">3 天</button>
+                <button id="duration5Btn" class="secondary">5 天</button>
+              </div>
+              <div class="inline-grid custom-duration-row">
+                <label>
+                  自訂天數
+                  <input id="customDays" type="number" min="1" step="1" placeholder="輸入天數" />
+                </label>
+                <div class="align-end">
+                  <button id="applyCustomDaysBtn" class="secondary">自訂天數</button>
+                </div>
+              </div>
+              <div class="inline-grid official-qr-options">
+                <label>
+                  QR Size
+                  <input id="officialQrSize" type="number" min="1" max="16" value="6" />
+                </label>
+                <label>
+                  錯誤修正
+                  <select id="officialQrEc">
+                    <option value="48" selected>L</option>
+                    <option value="49">M</option>
+                    <option value="50">Q</option>
+                    <option value="51">H</option>
+                  </select>
+                </label>
+              </div>
+              <div class="footer-actions">
+                <button id="printOfficialQrBtn" class="cta-button">列印</button>
+              </div>
+            </div>
+          </div>
+          <details class="collapse-block">
+            <summary>展開 Message / QR Payload</summary>
+            <div class="collapse-content">
+              <label>
+                Message
+                <textarea id="messagePreview" rows="3" readonly></textarea>
+              </label>
+              <label>
+                最終 QR Payload
+                <textarea id="signedPayload" rows="6" readonly></textarea>
+              </label>
+            </div>
+          </details>
+        </div>
+
+        <details class="card card-wide section-card collapse-card">
+          <summary>Debug區塊</summary>
+          <div class="collapse-content">
+            <div class="section-grid two-col">
+              <div class="card inset-card">
+                <h2>純文字測試</h2>
+                <label>
+                  文字內容
+                  <textarea id="textContent" rows="6">HELLO T58_A095
+BLE TEXT TEST
+1234567890</textarea>
+                </label>
+                <div class="button-row">
+                  <button id="printTextBtn">列印文字</button>
+                  <button id="feedBtn" class="secondary">送空白行</button>
+                </div>
+              </div>
+
+              <div class="card inset-card">
+                <h2>手動 QR Debug</h2>
+                <label>
+                  上方文字
+                  <input id="qrLabel" value="BLE QR TEST" />
+                </label>
+                <label>
+                  QR 內容
+                  <textarea id="qrContent" rows="5">https://example.com/t58-a095</textarea>
+                </label>
+                <div class="inline-grid">
+                  <label>
+                    QR Size
+                    <input id="qrSize" type="number" min="1" max="16" value="6" />
+                  </label>
+                  <label>
+                    錯誤修正
+                    <select id="qrEc">
+                      <option value="48">L</option>
+                      <option value="49" selected>M</option>
+                      <option value="50">Q</option>
+                      <option value="51">H</option>
+                    </select>
+                  </label>
+                </div>
+                <button id="printQrBtn">列印 QR</button>
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <div class="card card-wide">
+          <h2>紀錄</h2>
+          <pre id="log" class="log"></pre>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>
